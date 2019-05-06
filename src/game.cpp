@@ -1,18 +1,12 @@
 #include "game.hpp"
 
-Game::Game() {
+Game::Game(const char* title, int posx, int posy, int width,
+    int height, bool maximised) {
     window   = nullptr;
     renderer = nullptr;
     running  = false;
     snake    = nullptr;
-}
 
-Game::~Game() {
-    delete snake;
-}
-
-void Game::init(const char* title, int posx, int posy, int width, int height,
-  bool maximised) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cout << "SDL2 initialisation failed: " << SDL_GetError() << std::endl;
         return;
@@ -31,6 +25,13 @@ void Game::init(const char* title, int posx, int posy, int width, int height,
     SDL_SetRenderDrawColor(renderer, 122, 164, 82, 255);
     running = true;
     snake = new Snake(GRID / 2, GRID / 2, rand() % 4, renderer);
+}
+
+Game::~Game() {
+    SDL_DestroyWindow(window);
+    SDL_DestroyRenderer(renderer);
+    SDL_Quit();
+    delete snake;
 }
 
 void Game::handleEvents() {
@@ -84,7 +85,5 @@ void Game::render() {
 }
 
 void Game::clean() {
-    SDL_DestroyWindow(window);
-    SDL_DestroyRenderer(renderer);
-    SDL_Quit();
+
 }

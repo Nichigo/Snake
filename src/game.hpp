@@ -12,10 +12,9 @@
 class Game {
 
 public:
-    Game();
-    ~Game();
-    void init(const char * title, int posx, int posy, int width,
+    Game(const char * title, int posx, int posy, int width,
       int height, bool maximised);
+    ~Game();
     void handleEvents();
     void update();
     void render();
