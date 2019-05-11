@@ -1,37 +1,18 @@
 #include "game.hpp"
 
-Game::Game(const char* title, int posx, int posy, int width,
-    int height, bool maximised) {
-    window   = nullptr;
-    renderer = nullptr;
+Game::Game() {
+
     running  = false;
     snake    = nullptr;
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "SDL2 initialisation failed: " << SDL_GetError() << std::endl;
-        return;
-    }
-    window = SDL_CreateWindow(title, posx, posy, width, height,
-      maximised == true ? SDL_WINDOW_MAXIMIZED : NULL);
-    if (window == NULL) {
-        std::cout << "Window creation failed: " << SDL_GetError() << std::endl;
-        return;
-    }
-    renderer = SDL_CreateRenderer(window, -1, NULL);
-    if (renderer == NULL) {
-        std::cout << "Renderer creation failed: " << SDL_GetError() << std::endl;
-        return;
-    }
-    SDL_SetRenderDrawColor(renderer, 122, 164, 82, 255);
     running = true;
-    snake = new Snake(GRID / 2, GRID / 2, rand() % 4, renderer);
+    snake = new Snake(GRID / 2, GRID / 2, rand() % 4);
+    food = getValidFood();
 }
 
 Game::~Game() {
-    SDL_DestroyWindow(window);
-    SDL_DestroyRenderer(renderer);
-    SDL_Quit();
     delete snake;
+    delete food;
 }
 
 void Game::handleEvents() {
@@ -40,16 +21,16 @@ void Game::handleEvents() {
         if (event.type == SDL_KEYDOWN) {
             switch (event.key.keysym.sym) {
                 case SDLK_UP:
-                    snake->setDirection(Snake::NORTH);
+                    snake->setDirection(DIR_NORTH);
                     break;
                 case SDLK_DOWN:
-                    snake->setDirection(Snake::SOUTH);
+                    snake->setDirection(DIR_SOUTH);
                     break;
                 case SDLK_LEFT:
-                    snake->setDirection(Snake::WEST);
+                    snake->setDirection(DIR_WEST);
                     break;
                 case SDLK_RIGHT:
-                    snake->setDirection(Snake::EAST);
+                    snake->setDirection(DIR_EAST);
                     break;
                 case SDLK_RETURN:
                     if (!snake->isAlive()) running = false;
@@ -65,11 +46,17 @@ void Game::handleEvents() {
 void Game::update() {
     if (snake->isAlive()) {
         snake->checkCollision();
-        snake->checkAndEatFood();
+        if(snake->checkAndEatFood(food))
+        {
+            delete food;
+            food = getValidFood();
+        }
+
         snake->move();
     }
 }
 
+/*
 void Game::render() {
     SDL_RenderClear(renderer);
     snake->render();
@@ -81,9 +68,29 @@ void Game::render() {
         r.y = (G_SIZE - r.h) / 2;
         SDL_RenderCopy(renderer, snake->gameOverTexture, NULL, &r);
     }
+
     SDL_RenderPresent(renderer);
 }
+*/
 
-void Game::clean() {
+Segment* Game::getValidFood() {
+    Segment* newFood = new Segment(0, 0);
+    do {
+        newFood->x = rand() % GRID;
+        newFood->y = rand() % GRID;
+    }
+    while (!checkFoodValid(newFood));
 
+    return newFood;
+}
+
+bool Game::checkFoodValid(Segment* food) {
+    std::vector<Segment *> snakeBody = snake->getBody();
+    for(auto segment : snakeBody) {
+        if(food->x == segment->x || food->y == segment->y) {
+            return false;
+        }
+    }
+
+    return true;
 }

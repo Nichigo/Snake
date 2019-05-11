@@ -1,24 +1,22 @@
 #include "snake.hpp"
 
-Snake::Snake(int startx, int starty, char dir, SDL_Renderer* ren) {
+Snake::Snake(int startx, int starty, char dir) {
     direction       = dir;
-    renderer        = ren;
     alive           = true;
-    headTexture     = loadTexture("res/head.png");
-    bodyTexture     = loadTexture("res/body.png");
-    gameOverTexture = loadTexture("res/gameover.png");
-    foodTexture     = loadTexture("res/food.png");
+    /*
     food = new Segment(0, 0);
     do {
         food->x = rand() % GRID;
         food->y = rand() % GRID;
     }
+
     while (food->x != startx && food->y != starty);
+    */
     addSegment(startx, starty);
 }
 
 Snake::~Snake() {
-    for (int i = 0; i < body.size(); i++)
+    for (int i = 0; i < (int)body.size(); i++)
         delete body[i];
 }
 
@@ -31,19 +29,19 @@ void Snake::move() {
     if (!alive) return;
     int dx, dy;
     switch (direction) {
-        case Snake::NORTH:
+        case DIR_NORTH:
             dx = 0;
             dy = -1;
             break;
-        case Snake::SOUTH:
+        case DIR_SOUTH:
             dx = 0;
             dy = 1;
             break;
-        case Snake::EAST:
+        case DIR_EAST:
             dx = 1;
             dy = 0;
             break;
-        case Snake::WEST:
+        case DIR_WEST:
             dx = -1;
             dy = 0;
             break;
@@ -59,6 +57,7 @@ void Snake::move() {
     snakeHead->y += dy;
 }
 
+/*
 SDL_Texture* Snake::loadTexture(const char* filename) {
     SDL_Surface * tSurface = IMG_Load(filename);
     if (!tSurface)
@@ -67,23 +66,24 @@ SDL_Texture* Snake::loadTexture(const char* filename) {
     SDL_FreeSurface(tSurface);
     return texture;
 }
+*/
 
 void Snake::setDirection(char dir) {
     switch (direction) {
-        case Snake::NORTH:
-            if (dir == Snake::SOUTH) return;
+        case DIR_NORTH:
+            if (dir == DIR_SOUTH) return;
             if (body.size() > 1 && body[0]->y == body[1]->y) return;
             break;
-        case Snake::SOUTH:
-            if (dir == Snake::NORTH) return;
+        case DIR_SOUTH:
+            if (dir == DIR_NORTH) return;
             if (body.size() > 1 && body[0]->y == body[1]->y) return;
             break;
-        case Snake::EAST:
-            if (dir == Snake::WEST) return;
+        case DIR_EAST:
+            if (dir == DIR_WEST) return;
             if (body.size() > 1 && body[0]->x == body[1]->x) return;
             break;
-        case Snake::WEST:
-            if (dir == Snake::EAST) return;
+        case DIR_WEST:
+            if (dir == DIR_EAST) return;
             if (body.size() > 1 && body[0]->x == body[1]->x) return;
             break;
     }
@@ -96,7 +96,7 @@ void Snake::checkCollision() {
         alive = false;
         return;
     }
-    for (int i = 1; i < body.size(); i++) {
+    for (int i = 1; i < (int)body.size(); i++) {
         if (head->x == body[i]->x && head->y == body[i]->y) {
             alive = false;
             break;
@@ -104,6 +104,7 @@ void Snake::checkCollision() {
     }
 }
 
+/*
 void Snake::render() {
     SDL_Rect r;
     r.w = r.h = C_SIZE;
@@ -123,12 +124,18 @@ void Snake::render() {
         SDL_RenderCopy(renderer, bodyTexture, NULL, &r);
     }
 }
+*/
 
-void Snake::checkAndEatFood() {
+bool Snake::checkAndEatFood(Segment* food) {
     if (body[0]->x == food->x && body[0]->y == food->y)
+    {
         addSegment( body[ body.size() - 1 ]->x, body[ body.size() - 1 ]->y );
-    else return;
+        return true;
+    }
 
+    return false;
+
+    /*
     auto collides = [&]() {
         for (auto s : body) {
             if (food->x == s->x && food->y == s->y)
@@ -142,4 +149,13 @@ void Snake::checkAndEatFood() {
         food->y = rand() % GRID;
     }
     while (collides());
+    */
+}
+
+std::vector<Segment *> Snake::getBody(){
+    return this->body;
+}
+
+char Snake::getDirection(){
+    return this->direction;
 }
